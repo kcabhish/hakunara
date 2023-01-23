@@ -26,7 +26,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 app.use((req, res, next) => {
   // this needs to be replaced after the authentication
-  User.findById('63c91deea7dabb2020a7f31f')
+  User.findById('63c97351af8bb766fc3fd732')
     .then(user => {
       req.user = user;
       next();
