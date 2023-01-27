@@ -13,7 +13,11 @@ exports.postLogin = (req, res, next) => {
     .then(user => {
       req.session.user = user;
       req.session.isLoggedIn = true;
-      res.redirect('/');
+      // make sures session is created before redirecting to other pages
+      req.session.save(err => {
+        console.log(err);
+        res.redirect('/');
+      })
     })
     .catch(err => {
       console.log('check hardcoded id');
