@@ -3,26 +3,45 @@ const path = require('path');
 const express = require('express');
 const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
+const session = require('express-session');
+// the parameter passed in this is the session method created from express-session
+const MongoDBStore = require('connect-mongodb-session')(session);
 require('dotenv').config();
 
 const dbUser = process.env.DB_USER;
 const dbPass = process.env.DB_PASS;
 const dbName = process.env.DB_NAME;
 
-const url = `mongodb+srv://${dbUser}:${dbPass}@cluster0.bngabhc.mongodb.net/${dbName}?retryWrites=true&w=majority`
+const url = `mongodb+srv://${dbUser}:${dbPass}@cluster0.bngabhc.mongodb.net/${dbName}`
+
 const errorController = require('./controllers/error');
 const User = require('./models/user');
 
 const app = express();
+const store = new MongoDBStore({
+  uri: url,
+  // collection will give name for the table
+  collection: 'sessions',
+  // we can pass the expiry time here and monodb can clean up the data in the server directly using that options
+  connectionOptions: {useUnifiedTopology: true}
+})
 
 app.set('view engine', 'ejs');
 app.set('views', 'views');
 
 const adminRoutes = require('./routes/admin');
 const shopRoutes = require('./routes/shop');
+const authRoutes = require('./routes/auth');
 
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(express.static(path.join(__dirname, 'public')));
+// check docs for options to be passes for session storage
+app.use(session({
+  secret: 'my secret', 
+  resave: false, 
+  saveUninitialized: false,
+  store: store
+}));
 
 app.use((req, res, next) => {
   // this needs to be replaced after the authentication
@@ -36,11 +55,12 @@ app.use((req, res, next) => {
 
 app.use('/admin', adminRoutes);
 app.use(shopRoutes);
+app.use(authRoutes);
 
 app.use(errorController.get404);
 
 mongoose
-  .connect(url)
+  .connect(url, { useNewUrlParser: true, useUnifiedTopology: true})
   .then(result => {
     // using mock user when server is started
     User.findOne({
