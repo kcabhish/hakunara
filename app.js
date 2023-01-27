@@ -65,24 +65,6 @@ app.use(errorController.get404);
 mongoose
   .connect(url, { useNewUrlParser: true, useUnifiedTopology: true})
   .then(result => {
-    // using mock user when server is started
-    User.findOne({
-      email: 'haku-cha@gmail.com'
-    },(err, user) => {
-      if (!user) {
-        console.log("user not found");
-        const newUser = new User({
-          name: 'Haku',
-          email: 'haku-cha@gmail.com',
-          cart: {
-            items: []
-          }
-        });
-        newUser.save();
-      }
-    });
-    // end of mock user
-    console.log('localhost:3000');
     app.listen(3000);
   })
   .catch(err => {
